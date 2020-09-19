@@ -1,0 +1,50 @@
+Clear["Global`*"];
+
+(*Set all needed parameters*)
+{g, l1, l2, m1, m2, tt} = {9.8, 1, 0.64, 1, 0.79, 100};
+
+(*The Lagrangian formulation*)
+L = (m1 + m2)/2 l1^2 (a'[t])^2 + m2/2 l2^2 (b'[t])^2 + 
+   m2*l1*l2*a'[t]*b'[t]*Cos[a[t] - b[t]] + (m1 + m2)*g*l1*Cos[a[t]] + 
+   m2*g*l2*Cos[b[t]];
+   
+(*Set differential equation with proper boundary conditions*)
+funcs = {D[L, a[t]] == D[D[L, a'[t]], t], 
+   D[L, b[t]] == D[D[L, b'[t]], t], a[0] == 3 Pi/4, b[0] == Pi/6, 
+   a'[0] == 0, b'[0] == 0};
+   
+(*Numerical solution of the equation*)
+sov = NDSolve[funcs, {a, b}, {t, 0, tt}, PrecisionGoal -> 100][[1]];
+
+(*The angle evolution over time*)
+a = a /. sov;
+b = b /. sov;
+
+(*The coordinates of particles m1 and m2*)
+p1[t_] := {l1*Sin[a[t]], -l1*Cos[a[t]]};
+p2[t_] := {l1*Sin[a[t]] + l2*Sin[b[t]], -l1*Cos[a[t]] - l2*Cos[b[t]]};
+
+(*Generate the table*)
+result = Table[
+   Show[Graphics[Circle[{0, 0}, 1], PlotRange -> {{-2, 2}, {2, -2}}, 
+     AxesOrigin -> {0, 0}, Axes -> True, Frame -> False], 
+    Graphics[{Line[{{0, 0}, p1[u], p2[u]}], Disk[p1[u], m1/15], 
+      Disk[p2[u], m2/15]}], 
+    If[u < 3, 
+     ParametricPlot[p2[t], {t, 0, u}, 
+      ColorFunction -> 
+       Function[{x, y, u}, f = Hue[0.58, 0.58, 0.8, u]]], 
+     ParametricPlot[p2[t], {t, u - 3, u}, 
+      ColorFunction -> 
+       Function[{x, y, u}, f = Hue[0.58, 0.58, 0.8, u]]]]], {u, 0.01, 
+    tt, 0.01}];
+    
+(*Export as gif from the table*)
+Export["/Users/tianye/Downloads/双摆100s, \
+100FPS，ImageResolution200.gif", result, ImageResolution -> 200]
+
+(*Export as a series of frames*)
+For[i = 9989, i < 9990, i++, 
+ Export["/Users/tianye/Downloads/test/双摆100s, 100FPS, \
+ImageResolution200 " <> ToString[i] <> ".png", result[[i]], 
+  ImageResolution -> 200]; Print[i]]
