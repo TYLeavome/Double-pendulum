@@ -1,5 +1,6 @@
 Clear["Global`*"];
-(*set all needed parameters*)
+
+(*Set all needed parameters*)
 {g, l1, l2, m1, m2, tt} = {9.8, 1, 0.64, 1, 0.79, 100};
 
 (*The Lagrangian formulation*)
